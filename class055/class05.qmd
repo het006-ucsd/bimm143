@@ -1,0 +1,191 @@
+---
+title: "Class 5: Data Viz with ggplot"
+author: "Helenna T (TSS:200042830)"
+format: pdf
+toc: true
+---
+
+## Background 
+
+There are many **graphics systems** in R for making plots and figure.These include **"base R graphics"** like the `plot()` and add-on packages like **ggplot2**.
+
+Let's compare how we make a simple graph with these two systems:
+
+We can use the in-built `cars` dataset:
+
+```{r}
+head(cars)
+```
+
+A base R plot:
+```{r}
+plot(cars)
+```
+
+
+Now for **ggplot2**
+
+Before I can use ggplot2 I need to install it on my computer. To do this we can use function `install.packages("ggplot2")`
+
+>**N.H** We never run an `install.packages()` in our quarto doc, the code block, (we run it in our R console) as it would re-install the packages every time I render my document.
+
+Once installed, we still need to load it up into out R session. We do this with a `library()` call
+
+```{r}
+library(ggplot2)
+ggplot(cars)
+```
+
+Every ggplot needs at least 3 inputs:
+
+-the **data** (a data.frame of the stuff we want to plot),
+
+-the **aesthestics** (how the data maps to the plot),
+-the **geom** layer (how you want the plot drawn, points, lines etc.)
+
+```{r}
+ggplot(cars) + 
+  aes(x=speed, y=dist) + 
+  geom_point()
+```
+
+
+
+##Lets add some features (more layers)
+
+Let's add a trend line that shows the relationship between `speed` and `distance`: 
+
+```{r}
+ggplot(cars) +
+  aes(x=speed, y=dist) + 
+  geom_point() + 
+  geom_smooth(method = "lm", se = FALSE)+
+  theme_bw()+ 
+  labs(x="Speed (MPH", 
+       y="Stopping Distnace (ft)",
+  title= "Stopping Distance of Some Old Cars")
+```
+
+
+## Gene Expression Plot
+
+First we will read some expression data for the effects of a GLP-1 drug 
+
+```{r}
+url <- "https://bioboot.github.io/bimm143_S20/class-material/up_down_expression.txt"
+genes <- read.delim(url)
+head(genes) 
+```
+
+
+```{r}
+ggplot(genes) +
+aes(x=Condition1, y=Condition2, col=State) +
+geom_point() +
+scale_colour_manual( values=c("blue","gray","red") )+
+labs(x="Control(no drug)" , 
+       y="Drug Treatment" ,
+  title= "Gene Expression Changes Upon Drug Treatment")
+  
+```
+
+>Q. Use the nrow() function to find out how many genes are in this dataset. What is your answer?
+
+```{r}
+nrow(genes)
+```
+
+
+>Q. Use the colnames() function and the ncol() function on the genes data frame to find out what the column names are (we will need these later) and how many columns there are. How many columns did you find?
+
+```{r}
+colnames(genes)
+ncol(genes)
+
+```
+
+>Q. Use the table() function on the State Column of this data.frame to find out how many 'up' regulated genes there are. What is your answer?
+
+```{r}
+table(genes$State)
+
+```
+>Q. Using your values above and 2 significant figures. What fraction of total genes is up-regulated in this dataset?
+
+```{r}
+n.total <- nrow(genes)
+n.up <- sum(genes$State == "up")
+round( (n.up/n.total*100), 2)
+```
+
+## Going Further
+
+Here we read the famous *gapminder* dataset:
+
+```{r}
+url <- "https://raw.githubusercontent.com/jennybc/gapminder/master/inst/extdata/gapminder.tsv"
+
+gapminder <- read.delim(url)
+head(gapminder)
+```
+>Q. How many different "cuntry values are in this dataset
+
+```{r}
+length(table (gapminder$country))
+```
+
+Lets make our first plot of `gdpPercap` vs `lifeExp` :
+```{r}
+ggplot(gapminder) +
+aes(x=gdpPercap, y=lifeExp) +
+geom_point()
+```
+
+```{r}
+ggplot(gapminder) +
+aes(x=gdpPercap, y=lifeExp, col=continent) +
+geom_point()
+```
+
+
+One useful layer we can add to explore big details like this is called "facetting"
+
+```{r}
+ggplot(gapminder) +
+aes(x=gdpPercap, y=lifeExp, col=continent) +
+geom_point() +
+facet_wrap(~continent)
+```
+
+### Limit to 1977 and 2007
+
+We can install and use the **dplyer** package to help us "filter" the full dataset to a smaller subset that only includes the years we want.
+
+First we need to run `install.packages("dplyr")` and then load it with `library(dplyr)`.
+```{r}
+library(dplyr)
+
+filter(gapminder, year==2007, country== "Ireland")
+filter(gapminder, year==1977, country== "Ireland")
+#gapminder$year
+```
+
+Q. Make a histogram of lifeExp fill color by continent
+
+```{r}
+
+ggplot(gapminder) +
+  aes(lifeExp, fill=continent) +
+  geom_histogram()
+```
+
+
+Q. Make a boxplot of lifeExp fill color by continent
+
+```{r}
+
+ggplot(gapminder) +
+  aes(lifeExp, fill=continent) +
+  geom_boxplot()
+```
+
